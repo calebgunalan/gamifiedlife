@@ -7,6 +7,12 @@ import { AuthGuard } from "./components/AuthGuard";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import LogActivity from "./pages/LogActivity";
+import Quests from "./pages/Quests";
+import SpiritualHub from "./pages/SpiritualHub";
+import Achievements from "./pages/Achievements";
+import Parties from "./pages/Parties";
+import Insights from "./pages/Insights";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,7 +27,12 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<AuthGuard><Dashboard /></AuthGuard>} />
           <Route path="/log-activity" element={<AuthGuard><LogActivity /></AuthGuard>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/quests" element={<AuthGuard><Quests /></AuthGuard>} />
+          <Route path="/spiritual-hub" element={<AuthGuard><SpiritualHub /></AuthGuard>} />
+          <Route path="/achievements" element={<AuthGuard><Achievements /></AuthGuard>} />
+          <Route path="/parties" element={<AuthGuard><Parties /></AuthGuard>} />
+          <Route path="/insights" element={<AuthGuard><Insights /></AuthGuard>} />
+          <Route path="/profile" element={<AuthGuard><Profile /></AuthGuard>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

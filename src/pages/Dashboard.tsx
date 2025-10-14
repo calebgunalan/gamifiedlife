@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CharacterCard } from "@/components/CharacterCard";
 import { SkillTree } from "@/components/SkillTree";
 import { Button } from "@/components/ui/button";
-import { Scroll, Plus, Award } from "lucide-react";
+import { Scroll, Plus, Award, Heart, Users, BarChart3, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface Profile {
@@ -90,23 +90,41 @@ const Dashboard = () => {
             <span className="text-primary">⚔️</span>
             Full Gamified Life
           </h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Link to="/quests">
-              <Button variant="default" className="gap-2">
+              <Button variant="default" size="sm" className="gap-2">
                 <Scroll className="w-4 h-4" />
                 Quests
               </Button>
             </Link>
-            <Link to="/spiritual">
-              <Button variant="secondary" className="gap-2">
-                <span>🕉️</span>
+            <Link to="/spiritual-hub">
+              <Button variant="secondary" size="sm" className="gap-2">
+                <Heart className="w-4 h-4" />
                 Spiritual
               </Button>
             </Link>
             <Link to="/achievements">
-              <Button variant="secondary" className="gap-2">
+              <Button variant="secondary" size="sm" className="gap-2">
                 <Award className="w-4 h-4" />
                 Achievements
+              </Button>
+            </Link>
+            <Link to="/parties">
+              <Button variant="secondary" size="sm" className="gap-2">
+                <Users className="w-4 h-4" />
+                Parties
+              </Button>
+            </Link>
+            <Link to="/insights">
+              <Button variant="secondary" size="sm" className="gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Insights
+              </Button>
+            </Link>
+            <Link to="/profile">
+              <Button variant="secondary" size="sm" className="gap-2">
+                <User className="w-4 h-4" />
+                Profile
               </Button>
             </Link>
           </div>

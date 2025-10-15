@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { CharacterCard } from "@/components/CharacterCard";
 import { SkillTree } from "@/components/SkillTree";
 import { Button } from "@/components/ui/button";
-import { Scroll, Plus, Award, Heart, Users, BarChart3, User } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Scroll, Plus, Award, Heart, Users, BarChart3, User, Target, Swords, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface Profile {
@@ -139,12 +140,73 @@ const Dashboard = () => {
           totalXp={profile.total_xp}
         />
 
+        {/* Weekly Balance Card */}
+        <Card className="border-primary/30 bg-gradient-to-br from-card to-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Weekly Balance
+            </CardTitle>
+            <CardDescription>
+              Hit 60+ XP in 5+ areas to become a Balance Master this week
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-7 gap-2">
+              {areaProgress.map((area: any) => {
+                const metTarget = area.weekly_xp >= 60;
+                return (
+                  <div key={area.area} className="text-center">
+                    <div 
+                      className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-2 ${
+                        metTarget ? 'bg-primary text-primary-foreground' : 'bg-secondary'
+                      }`}
+                    >
+                      {metTarget ? '✓' : area.weekly_xp}
+                    </div>
+                    <p className="text-xs text-muted-foreground capitalize">{area.area}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                {areaProgress.filter((a: any) => a.weekly_xp >= 60).length} / 7 areas on track
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Quick Actions */}
-        <div className="flex gap-2">
-          <Link to="/log-activity" className="flex-1">
-            <Button className="w-full gap-2" size="lg">
-              <Plus className="w-5 h-5" />
-              Log Activity
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <Link to="/log-activity">
+            <Button variant="outline" className="h-24 w-full flex-col gap-2">
+              <Scroll className="w-6 h-6" />
+              <span>Log Activity</span>
+            </Button>
+          </Link>
+          <Link to="/challenges">
+            <Button variant="outline" className="h-24 w-full flex-col gap-2">
+              <Swords className="w-6 h-6" />
+              <span>Challenges</span>
+            </Button>
+          </Link>
+          <Link to="/leaderboards">
+            <Button variant="outline" className="h-24 w-full flex-col gap-2">
+              <Trophy className="w-6 h-6" />
+              <span>Leaderboards</span>
+            </Button>
+          </Link>
+          <Link to="/insights">
+            <Button variant="outline" className="h-24 w-full flex-col gap-2">
+              <BarChart3 className="w-6 h-6" />
+              <span>Insights</span>
+            </Button>
+          </Link>
+          <Link to="/profile">
+            <Button variant="outline" className="h-24 w-full flex-col gap-2">
+              <User className="w-6 h-6" />
+              <span>Profile</span>
             </Button>
           </Link>
         </div>
@@ -157,15 +219,16 @@ const Dashboard = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {areaProgress.map((area) => (
-              <SkillTree
-                key={area.area}
-                area={area.area}
-                level={area.level}
-                currentXp={area.total_xp % calculateNextLevelXp(area.level)}
-                nextLevelXp={calculateNextLevelXp(area.level)}
-                weeklyXp={area.weekly_xp}
-                weeklyTarget={50}
-              />
+              <Link key={area.area} to={`/area/${area.area}`}>
+                <SkillTree
+                  area={area.area}
+                  level={area.level}
+                  currentXp={area.total_xp % calculateNextLevelXp(area.level)}
+                  nextLevelXp={calculateNextLevelXp(area.level)}
+                  weeklyXp={area.weekly_xp}
+                  weeklyTarget={50}
+                />
+              </Link>
             ))}
           </div>
         </div>

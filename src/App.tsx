@@ -14,6 +14,9 @@ import Parties from "./pages/Parties";
 import Insights from "./pages/Insights";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import AreaDetail from "./pages/AreaDetail";
+import Leaderboards from "./pages/Leaderboards";
+import Challenges from "./pages/Challenges";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +34,9 @@ const App = () => (
           <Route path="/spiritual-hub" element={<AuthGuard><SpiritualHub /></AuthGuard>} />
           <Route path="/achievements" element={<AuthGuard><Achievements /></AuthGuard>} />
           <Route path="/parties" element={<AuthGuard><Parties /></AuthGuard>} />
+          <Route path="/challenges" element={<AuthGuard><Challenges /></AuthGuard>} />
+          <Route path="/leaderboards" element={<AuthGuard><Leaderboards /></AuthGuard>} />
+          <Route path="/area/:area" element={<AuthGuard><AreaDetail /></AuthGuard>} />
           <Route path="/insights" element={<AuthGuard><Insights /></AuthGuard>} />
           <Route path="/profile" element={<AuthGuard><Profile /></AuthGuard>} />
           <Route path="*" element={<NotFound />} />

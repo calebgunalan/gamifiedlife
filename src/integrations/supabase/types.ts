@@ -174,6 +174,118 @@ export type Database = {
           },
         ]
       }
+      challenge_participants: {
+        Row: {
+          challenge_id: string
+          completed: boolean | null
+          id: string
+          joined_at: string | null
+          progress: number | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed?: boolean | null
+          id?: string
+          joined_at?: string | null
+          progress?: number | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed?: boolean | null
+          id?: string
+          joined_at?: string | null
+          progress?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          area: Database["public"]["Enums"]["life_area"] | null
+          challenge_type: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          end_date: string
+          id: string
+          name: string
+          party_id: string | null
+          start_date: string
+          xp_reward: number
+        }
+        Insert: {
+          area?: Database["public"]["Enums"]["life_area"] | null
+          challenge_type: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          end_date: string
+          id?: string
+          name: string
+          party_id?: string | null
+          start_date: string
+          xp_reward: number
+        }
+        Update: {
+          area?: Database["public"]["Enums"]["life_area"] | null
+          challenge_type?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          party_id?: string | null
+          start_date?: string
+          xp_reward?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenges_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaderboard_entries: {
+        Row: {
+          created_at: string | null
+          id: string
+          leaderboard_type: string
+          period: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          leaderboard_type: string
+          period: string
+          score: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          leaderboard_type?: string
+          period?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       parties: {
         Row: {
           created_at: string | null
@@ -241,6 +353,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      predefined_activities: {
+        Row: {
+          area: Database["public"]["Enums"]["life_area"]
+          created_at: string | null
+          description: string | null
+          frequency: string | null
+          icon: string | null
+          id: string
+          name: string
+          xp_value: number
+        }
+        Insert: {
+          area: Database["public"]["Enums"]["life_area"]
+          created_at?: string | null
+          description?: string | null
+          frequency?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          xp_value: number
+        }
+        Update: {
+          area?: Database["public"]["Enums"]["life_area"]
+          created_at?: string | null
+          description?: string | null
+          frequency?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          xp_value?: number
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

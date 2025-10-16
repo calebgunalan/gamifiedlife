@@ -318,6 +318,41 @@ export type Database = {
           },
         ]
       }
+      party_invitations: {
+        Row: {
+          created_at: string | null
+          id: string
+          invited_by: string
+          invited_user_id: string
+          party_id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invited_by: string
+          invited_user_id: string
+          party_id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invited_by?: string
+          invited_user_id?: string
+          party_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_invitations_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       party_members: {
         Row: {
           id: string
@@ -387,6 +422,39 @@ export type Database = {
         }
         Relationships: []
       }
+      privacy_settings: {
+        Row: {
+          allow_party_invites: boolean | null
+          created_at: string | null
+          id: string
+          share_milestones: boolean | null
+          show_on_leaderboards: boolean | null
+          show_spiritual_progress: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          allow_party_invites?: boolean | null
+          created_at?: string | null
+          id?: string
+          share_milestones?: boolean | null
+          show_on_leaderboards?: boolean | null
+          show_spiritual_progress?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          allow_party_invites?: boolean | null
+          created_at?: string | null
+          id?: string
+          share_milestones?: boolean | null
+          show_on_leaderboards?: boolean | null
+          show_spiritual_progress?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -394,6 +462,7 @@ export type Database = {
           character_name: string
           created_at: string | null
           id: string
+          monthly_reset_date: string | null
           monthly_xp: number | null
           total_xp: number | null
           updated_at: string | null
@@ -404,6 +473,7 @@ export type Database = {
           character_name: string
           created_at?: string | null
           id: string
+          monthly_reset_date?: string | null
           monthly_xp?: number | null
           total_xp?: number | null
           updated_at?: string | null
@@ -414,6 +484,7 @@ export type Database = {
           character_name?: string
           created_at?: string | null
           id?: string
+          monthly_reset_date?: string | null
           monthly_xp?: number | null
           total_xp?: number | null
           updated_at?: string | null

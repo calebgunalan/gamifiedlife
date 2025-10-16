@@ -14,17 +14,32 @@ export default function SpiritualHub() {
   const [isMeditating, setIsMeditating] = useState(false);
   const [gratitudeEntry, setGratitudeEntry] = useState("");
   const [streaks, setStreaks] = useState<any>(null);
+  const [natureTime, setNatureTime] = useState(0);
+  const [isInNature, setIsInNature] = useState(false);
+  const [serviceNotes, setServiceNotes] = useState("");
 
   useEffect(() => {
     loadStreaks();
-    let interval: any;
+    let meditationInterval: any;
+    let natureInterval: any;
+    
     if (isMeditating) {
-      interval = setInterval(() => {
+      meditationInterval = setInterval(() => {
         setMeditationTime(prev => prev + 1);
       }, 1000);
     }
-    return () => clearInterval(interval);
-  }, [isMeditating]);
+    
+    if (isInNature) {
+      natureInterval = setInterval(() => {
+        setNatureTime(prev => prev + 1);
+      }, 1000);
+    }
+    
+    return () => {
+      clearInterval(meditationInterval);
+      clearInterval(natureInterval);
+    };
+  }, [isMeditating, isInNature]);
 
   const loadStreaks = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -160,6 +175,127 @@ export default function SpiritualHub() {
     }
   };
 
+  const startNature = () => {
+    setIsInNature(true);
+    setNatureTime(0);
+  };
+
+  const stopNature = async () => {
+    setIsInNature(false);
+    const minutes = Math.floor(natureTime / 60);
+    
+    if (minutes < 1) {
+      toast({
+        title: "Session Too Short",
+        description: "Spend at least 1 minute in nature to log it.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from("activity_logs").insert({
+        user_id: user.id,
+        activity_id: "00000000-0000-0000-0000-000000000000",
+        area: "spiritual",
+        xp_earned: minutes * 3,
+        notes: `${minutes} minutes in nature`
+      } as any);
+
+      const { data: progress } = await supabase
+        .from("area_progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("area", "spiritual")
+        .single();
+
+      if (progress) {
+        const xp = minutes * 3;
+        await supabase
+          .from("area_progress")
+          .update({
+            total_xp: progress.total_xp + xp,
+            weekly_xp: progress.weekly_xp + xp
+          })
+          .eq("id", progress.id);
+
+        toast({
+          title: "Nature Time Logged 🌿",
+          description: `You earned ${xp} XP for ${minutes} minutes in nature!`
+        });
+      }
+
+      setNatureTime(0);
+      loadStreaks();
+    } catch (error) {
+      console.error("Error logging nature time:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log nature time",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const logService = async () => {
+    if (!serviceNotes.trim()) {
+      toast({
+        title: "Notes Required",
+        description: "Please describe your act of service.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from("activity_logs").insert({
+        user_id: user.id,
+        activity_id: "00000000-0000-0000-0000-000000000000",
+        area: "spiritual",
+        xp_earned: 10,
+        notes: `Service: ${serviceNotes}`
+      } as any);
+
+      const { data: progress } = await supabase
+        .from("area_progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("area", "spiritual")
+        .single();
+
+      if (progress) {
+        await supabase
+          .from("area_progress")
+          .update({
+            total_xp: progress.total_xp + 10,
+            weekly_xp: progress.weekly_xp + 10
+          })
+          .eq("id", progress.id);
+      }
+
+      toast({
+        title: "Service Logged 🤝",
+        description: "You earned 10 XP for your act of compassion!"
+      });
+
+      setServiceNotes("");
+      loadStreaks();
+    } catch (error) {
+      console.error("Error logging service:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log service",
+        variant: "destructive"
+      });
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -248,42 +384,66 @@ export default function SpiritualHub() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <TreePine className="w-5 h-5" />
-                  Nature Time
-                </CardTitle>
-                <CardDescription>
-                  Log time spent in nature
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="outline" className="w-full">
-                  Coming Soon
+          {/* Nature Time */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TreePine className="w-5 h-5" />
+                Nature Time
+              </CardTitle>
+              <CardDescription>
+                Connect with nature and earn XP
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="text-6xl font-bold text-emerald mb-6">
+                  {formatTime(natureTime)}
+                </div>
+                <Button
+                  size="lg"
+                  onClick={isInNature ? stopNature : startNature}
+                  className="w-48"
+                >
+                  {isInNature ? (
+                    <>
+                      <Pause className="w-4 h-4 mr-2" />
+                      End Nature Time
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 mr-2" />
+                      Start Nature Time
+                    </>
+                  )}
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <HandHeart className="w-5 h-5" />
-                  Service & Compassion
-                </CardTitle>
-                <CardDescription>
-                  Track acts of kindness
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="outline" className="w-full">
-                  Coming Soon
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Service & Compassion */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HandHeart className="w-5 h-5" />
+                Service & Compassion
+              </CardTitle>
+              <CardDescription>
+                Log acts of kindness and service
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                placeholder="Describe your act of service or compassion..."
+                value={serviceNotes}
+                onChange={(e) => setServiceNotes(e.target.value)}
+                className="min-h-32"
+              />
+              <Button onClick={logService} className="w-full">
+                Log Service (+10 XP)
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

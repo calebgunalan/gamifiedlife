@@ -14,7 +14,10 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [characterName, setCharacterName] = useState("");
+  const [avatar, setAvatar] = useState("⚔️");
   const [loading, setLoading] = useState(false);
+
+  const avatarOptions = ["⚔️", "🛡️", "🏹", "🔮", "⚡", "🌟", "🔥", "❄️", "🌿", "💎"];
 
   useEffect(() => {
     // Check if user is already logged in
@@ -48,6 +51,7 @@ const Auth = () => {
             emailRedirectTo: `${window.location.origin}/`,
             data: {
               character_name: characterName || "Adventurer",
+              avatar_url: avatar,
             },
           },
         });
@@ -87,17 +91,38 @@ const Auth = () => {
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="characterName">Character Name</Label>
-                <Input
-                  id="characterName"
-                  type="text"
-                  placeholder="Enter your character name"
-                  value={characterName}
-                  onChange={(e) => setCharacterName(e.target.value)}
-                  required={!isLogin}
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="characterName">Character Name</Label>
+                  <Input
+                    id="characterName"
+                    type="text"
+                    placeholder="Enter your character name"
+                    value={characterName}
+                    onChange={(e) => setCharacterName(e.target.value)}
+                    required={!isLogin}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Choose Your Avatar</Label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {avatarOptions.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => setAvatar(emoji)}
+                        className={`text-3xl p-3 rounded-lg border-2 transition-all hover:scale-110 ${
+                          avatar === emoji 
+                            ? "border-primary bg-primary/10" 
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
             
             <div className="space-y-2">

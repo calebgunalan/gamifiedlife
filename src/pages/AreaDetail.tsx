@@ -191,9 +191,33 @@ export default function AreaDetail() {
                   <span className="text-2xl font-bold">{streak?.current_count || 0}</span>
                   <span className="text-muted-foreground">day streak</span>
                 </div>
-                <Badge variant="secondary">
-                  {streak?.freeze_count || 0} freezes available
-                </Badge>
+                <div className="flex gap-2">
+                  <Badge variant="secondary">
+                    ❄️ {streak?.freeze_count || 0} freezes
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={(streak?.freeze_count || 0) === 0}
+                    onClick={async () => {
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if (!user || !streak) return;
+                      
+                      await supabase
+                        .from("streaks")
+                        .update({ freeze_count: streak.freeze_count - 1 })
+                        .eq("id", streak.id);
+                      
+                      toast({
+                        title: "Streak Frozen! ❄️",
+                        description: "Your streak is protected for today."
+                      });
+                      loadAreaData();
+                    }}
+                  >
+                    Use Freeze
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="mt-4">

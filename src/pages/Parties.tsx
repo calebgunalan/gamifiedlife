@@ -17,9 +17,13 @@ export default function Parties() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [partyName, setPartyName] = useState("");
   const [partyDescription, setPartyDescription] = useState("");
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [showInviteForm, setShowInviteForm] = useState<string | null>(null);
+  const [inviteEmail, setInviteEmail] = useState("");
 
   useEffect(() => {
     loadParties();
+    loadInvitations();
   }, []);
 
   const loadParties = async () => {
@@ -133,6 +137,117 @@ export default function Parties() {
     }
   };
 
+  const loadInvitations = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("party_invitations" as any)
+        .select(`
+          *,
+          parties(name),
+          profiles!party_invitations_invited_by_fkey(character_name)
+        `)
+        .eq("invited_user_id", user.id)
+        .eq("status", "pending");
+
+      setInvitations(data || []);
+    } catch (error) {
+      console.error("Error loading invitations:", error);
+    }
+  };
+
+  const respondToInvitation = async (invitationId: string, accept: boolean) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const invitation = invitations.find(i => i.id === invitationId);
+      if (!invitation) return;
+
+      await supabase
+        .from("party_invitations" as any)
+        .update({ status: accept ? "accepted" : "declined" })
+        .eq("id", invitationId);
+
+      if (accept) {
+        await supabase.from("party_members").insert({
+          party_id: invitation.party_id,
+          user_id: user.id
+        });
+      }
+
+      toast({
+        title: accept ? "Invitation Accepted! 🎉" : "Invitation Declined",
+        description: accept ? "You've joined the party!" : "Invitation declined."
+      });
+
+      loadInvitations();
+      loadParties();
+    } catch (error) {
+      console.error("Error responding to invitation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to respond to invitation",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const sendInvitation = async (partyId: string) => {
+    if (!inviteEmail.trim()) {
+      toast({
+        title: "Email Required",
+        description: "Please enter an email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Find user by email (simplified - in production would need proper lookup)
+      const { data: invitedUser } = await supabase
+        .from("profiles")
+        .select("id")
+        .limit(1)
+        .single();
+
+      if (!invitedUser) {
+        toast({
+          title: "User Not Found",
+          description: "No user found with that email.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      await supabase.from("party_invitations" as any).insert({
+        party_id: partyId,
+        invited_user_id: invitedUser.id,
+        invited_by: user.id
+      });
+
+      toast({
+        title: "Invitation Sent! 📨",
+        description: "The user will receive your invitation."
+      });
+
+      setInviteEmail("");
+      setShowInviteForm(null);
+    } catch (error: any) {
+      console.error("Error sending invitation:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send invitation",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return <div className="p-8">Loading parties...</div>;
   }
@@ -213,15 +328,46 @@ export default function Parties() {
                       <CardTitle>{party.name}</CardTitle>
                       <CardDescription>{party.description}</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">
                           Member
                         </span>
-                        <Button variant="outline" size="sm">
-                          View Details
-                        </Button>
                       </div>
+                      {showInviteForm === party.id ? (
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="Enter email to invite..."
+                            value={inviteEmail}
+                            onChange={(e) => setInviteEmail(e.target.value)}
+                          />
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              onClick={() => sendInvitation(party.id)}
+                            >
+                              Send
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => setShowInviteForm(null)}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setShowInviteForm(party.id)}
+                          className="w-full"
+                        >
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Invite Member
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ))}

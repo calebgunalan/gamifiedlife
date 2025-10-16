@@ -14,6 +14,8 @@ export default function Profile() {
   const [profile, setProfile] = useState<any>(null);
   const [characterName, setCharacterName] = useState("");
   const [achievements, setAchievements] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any>(null);
+  const [privacy, setPrivacy] = useState<any>(null);
 
   useEffect(() => {
     loadProfile();
@@ -38,9 +40,23 @@ export default function Profile() {
         `)
         .eq("user_id", user.id);
 
+      const { data: notifData } = await supabase
+        .from("notification_preferences" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      const { data: privacyData } = await supabase
+        .from("privacy_settings" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
       setProfile(profileData);
       setCharacterName(profileData?.character_name || "");
       setAchievements(userAchievements || []);
+      setNotifications(notifData);
+      setPrivacy(privacyData);
     } catch (error) {
       console.error("Error loading profile:", error);
     } finally {
@@ -73,6 +89,48 @@ export default function Profile() {
         description: "Failed to update profile",
         variant: "destructive"
       });
+    }
+  };
+
+  const updateNotifications = async (field: string, value: boolean) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from("notification_preferences" as any)
+        .update({ [field]: value })
+        .eq("user_id", user.id);
+
+      toast({
+        title: "Settings Updated",
+        description: "Your notification preferences have been saved."
+      });
+
+      loadProfile();
+    } catch (error) {
+      console.error("Error updating notifications:", error);
+    }
+  };
+
+  const updatePrivacy = async (field: string, value: boolean) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from("privacy_settings" as any)
+        .update({ [field]: value })
+        .eq("user_id", user.id);
+
+      toast({
+        title: "Privacy Updated",
+        description: "Your privacy settings have been saved."
+      });
+
+      loadProfile();
+    } catch (error) {
+      console.error("Error updating privacy:", error);
     }
   };
 
@@ -176,6 +234,114 @@ export default function Profile() {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Notification Preferences */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Notification Preferences</CardTitle>
+              <CardDescription>
+                Manage how you receive notifications
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Daily Reminders</div>
+                  <div className="text-sm text-muted-foreground">
+                    Get reminded to log activities
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifications?.daily_reminders ?? true}
+                  onChange={(e) => updateNotifications("daily_reminders", e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Quest Notifications</div>
+                  <div className="text-sm text-muted-foreground">
+                    Updates about quests and challenges
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifications?.quest_reminders ?? true}
+                  onChange={(e) => updateNotifications("quest_reminders", e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Achievement Alerts</div>
+                  <div className="text-sm text-muted-foreground">
+                    Celebrate when you unlock achievements
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifications?.achievement_alerts ?? true}
+                  onChange={(e) => updateNotifications("achievement_alerts", e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Privacy Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Privacy Settings</CardTitle>
+              <CardDescription>
+                Control your visibility and data sharing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Show on Leaderboards</div>
+                  <div className="text-sm text-muted-foreground">
+                    Appear in public rankings
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={privacy?.show_on_leaderboards ?? true}
+                  onChange={(e) => updatePrivacy("show_on_leaderboards", e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Share Spiritual Progress</div>
+                  <div className="text-sm text-muted-foreground">
+                    Make spiritual stats visible to others
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={privacy?.show_spiritual_progress ?? false}
+                  onChange={(e) => updatePrivacy("show_spiritual_progress", e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Allow Party Invites</div>
+                  <div className="text-sm text-muted-foreground">
+                    Let others invite you to parties
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={privacy?.allow_party_invites ?? true}
+                  onChange={(e) => updatePrivacy("allow_party_invites", e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
             </CardContent>
           </Card>
 

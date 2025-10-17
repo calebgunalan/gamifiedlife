@@ -1,6 +1,17 @@
-# Welcome to your Lovable project
+# 🎮 Full Gamified Life - RPG-Style Life OS
 
-## Project info
+Transform your daily actions into an adventure. Level up across 7 life dimensions, complete quests, earn achievements, and build streaks.
+
+## 🌟 Features
+
+- **Character & Progression** - XP, levels, 7 life areas
+- **Quest System** - Daily/weekly quests with auto-generation
+- **Streaks & Achievements** - Daily streaks with freeze, auto-unlocking badges
+- **Spiritual Growth** - Meditation timer, gratitude, nature, service
+- **Social Features** - Parties, challenges, leaderboards
+- **Analytics** - Progress tracking, data export
+
+## Project Info
 
 **URL**: https://lovable.dev/projects/5494c84c-8ceb-4a9e-a6a2-f65c148ba800
 

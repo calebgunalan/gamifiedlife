@@ -327,6 +327,56 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          achievement_alerts: boolean | null
+          created_at: string | null
+          daily_reminders: boolean | null
+          email_enabled: boolean | null
+          id: string
+          quest_reminders: boolean | null
+          streak_reminders: boolean | null
+          streak_warning_email: boolean | null
+          updated_at: string | null
+          user_id: string
+          weekly_summary_email: boolean | null
+        }
+        Insert: {
+          achievement_alerts?: boolean | null
+          created_at?: string | null
+          daily_reminders?: boolean | null
+          email_enabled?: boolean | null
+          id?: string
+          quest_reminders?: boolean | null
+          streak_reminders?: boolean | null
+          streak_warning_email?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          weekly_summary_email?: boolean | null
+        }
+        Update: {
+          achievement_alerts?: boolean | null
+          created_at?: string | null
+          daily_reminders?: boolean | null
+          email_enabled?: boolean | null
+          id?: string
+          quest_reminders?: boolean | null
+          streak_reminders?: boolean | null
+          streak_warning_email?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          weekly_summary_email?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parties: {
         Row: {
           created_at: string | null
@@ -502,6 +552,7 @@ export type Database = {
           character_level: number | null
           character_name: string
           created_at: string | null
+          email: string | null
           id: string
           monthly_reset_date: string | null
           monthly_xp: number | null
@@ -513,6 +564,7 @@ export type Database = {
           character_level?: number | null
           character_name: string
           created_at?: string | null
+          email?: string | null
           id: string
           monthly_reset_date?: string | null
           monthly_xp?: number | null
@@ -524,6 +576,7 @@ export type Database = {
           character_level?: number | null
           character_name?: string
           created_at?: string | null
+          email?: string | null
           id?: string
           monthly_reset_date?: string | null
           monthly_xp?: number | null

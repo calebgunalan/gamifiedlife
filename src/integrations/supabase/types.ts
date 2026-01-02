@@ -259,6 +259,47 @@ export type Database = {
           },
         ]
       }
+      in_app_notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "in_app_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaderboard_entries: {
         Row: {
           created_at: string | null
@@ -491,6 +532,42 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_templates: {
+        Row: {
+          area: Database["public"]["Enums"]["life_area"]
+          created_at: string | null
+          description: string | null
+          difficulty: string
+          id: string
+          is_active: boolean
+          quest_type: string
+          title: string
+          xp_reward: number
+        }
+        Insert: {
+          area: Database["public"]["Enums"]["life_area"]
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string
+          id?: string
+          is_active?: boolean
+          quest_type?: string
+          title: string
+          xp_reward?: number
+        }
+        Update: {
+          area?: Database["public"]["Enums"]["life_area"]
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string
+          id?: string
+          is_active?: boolean
+          quest_type?: string
+          title?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       quests: {
         Row: {
           area: Database["public"]["Enums"]["life_area"]
@@ -613,6 +690,44 @@ export type Database = {
             foreignKeyName: "user_achievements_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_onboarding: {
+        Row: {
+          commitment_level: string | null
+          completed_at: string | null
+          created_at: string | null
+          focus_areas: string[] | null
+          id: string
+          is_completed: boolean
+          user_id: string
+        }
+        Insert: {
+          commitment_level?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          focus_areas?: string[] | null
+          id?: string
+          is_completed?: boolean
+          user_id: string
+        }
+        Update: {
+          commitment_level?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          focus_areas?: string[] | null
+          id?: string
+          is_completed?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_onboarding_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },

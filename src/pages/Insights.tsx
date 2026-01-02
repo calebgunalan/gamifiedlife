@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BarChart3, Download } from "lucide-react";
+import { ArrowLeft, BarChart3, Download, FileJson } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Insights() {
@@ -59,7 +59,7 @@ export default function Insights() {
     }
   };
 
-  const exportData = async () => {
+  const exportData = async (format: 'csv' | 'json') => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -71,30 +71,58 @@ export default function Insights() {
         .eq("user_id", user.id)
         .order("completed_at", { ascending: false });
 
-      // Convert to CSV
-      const csv = [
-        ["Date", "Area", "XP", "Notes"].join(","),
-        ...(activities || []).map(a => 
-          [
-            new Date(a.completed_at).toLocaleDateString(),
-            a.area,
-            a.xp_earned,
-            `"${a.notes || ""}"`
-          ].join(",")
-        )
-      ].join("\n");
+      const { data: quests } = await supabase
+        .from("quests")
+        .select("*")
+        .eq("user_id", user.id);
 
-      // Download
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `rpg-life-data-${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
+      const { data: achievements } = await supabase
+        .from("user_achievements")
+        .select("*, achievements(*)")
+        .eq("user_id", user.id);
+
+      if (format === 'json') {
+        const exportData = {
+          profile: stats?.profile,
+          areaProgress: stats?.areaProgress,
+          streaks: stats?.streaks,
+          activities: activities || [],
+          quests: quests || [],
+          achievements: achievements || [],
+          exportedAt: new Date().toISOString()
+        };
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `gamified-life-export-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+      } else {
+        // CSV format
+        const csv = [
+          ["Date", "Area", "XP", "Notes"].join(","),
+          ...(activities || []).map(a => 
+            [
+              new Date(a.completed_at).toLocaleDateString(),
+              a.area,
+              a.xp_earned,
+              `"${a.notes || ""}"`
+            ].join(",")
+          )
+        ].join("\n");
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `gamified-life-data-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+      }
 
       toast({
         title: "Data Exported! 📊",
-        description: "Your activity data has been downloaded."
+        description: `Your data has been downloaded as ${format.toUpperCase()}.`
       });
     } catch (error) {
       console.error("Error exporting data:", error);
@@ -131,10 +159,16 @@ export default function Insights() {
             <BarChart3 className="w-8 h-8 text-primary" />
             <h1 className="text-4xl font-bold">Insights</h1>
           </div>
-          <Button onClick={exportData}>
-            <Download className="w-4 h-4 mr-2" />
-            Export Data
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => exportData('csv')} variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              CSV
+            </Button>
+            <Button onClick={() => exportData('json')}>
+              <FileJson className="w-4 h-4 mr-2" />
+              JSON
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-6">

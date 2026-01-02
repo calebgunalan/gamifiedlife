@@ -4,8 +4,10 @@ import { CharacterCard } from "@/components/CharacterCard";
 import { SkillTree } from "@/components/SkillTree";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scroll, Plus, Award, Heart, Users, BarChart3, User, Target, Swords, Trophy } from "lucide-react";
+import { Scroll, Award, Heart, Users, BarChart3, User, Target, Swords, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 interface Profile {
   character_name: string;
@@ -25,6 +27,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [areaProgress, setAreaProgress] = useState<AreaProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -46,6 +49,17 @@ const Dashboard = () => {
         .select("*")
         .eq("user_id", user.id)
         .order("area");
+
+      // Check if user has completed onboarding
+      const { data: onboarding } = await supabase
+        .from("user_onboarding" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!onboarding) {
+        setShowOnboarding(true);
+      }
 
       if (profileData) setProfile(profileData);
       if (areasData) setAreaProgress(areasData);
@@ -84,6 +98,11 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
+      {/* Onboarding Wizard */}
+      {showOnboarding && (
+        <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+      )}
+
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -91,7 +110,8 @@ const Dashboard = () => {
             <span className="text-primary">⚔️</span>
             Full Gamified Life
           </h1>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
+            <NotificationCenter />
             <Link to="/quests">
               <Button variant="default" size="sm" className="gap-2">
                 <Scroll className="w-4 h-4" />

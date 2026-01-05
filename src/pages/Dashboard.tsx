@@ -4,7 +4,7 @@ import { CharacterCard } from "@/components/CharacterCard";
 import { SkillTree } from "@/components/SkillTree";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scroll, Award, Heart, Users, BarChart3, User, Target, Swords, Trophy } from "lucide-react";
+import { Scroll, Award, Heart, Users, BarChart3, User, Target, Swords, Trophy, MessageSquare, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -140,6 +140,18 @@ const Dashboard = () => {
               <Button variant="secondary" size="sm" className="gap-2">
                 <BarChart3 className="w-4 h-4" />
                 Insights
+              </Button>
+            </Link>
+            <Link to="/friends">
+              <Button variant="secondary" size="sm" className="gap-2">
+                <UserPlus className="w-4 h-4" />
+                Friends
+              </Button>
+            </Link>
+            <Link to="/social">
+              <Button variant="secondary" size="sm" className="gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Feed
               </Button>
             </Link>
             <Link to="/profile">

@@ -17,6 +17,9 @@ import NotFound from "./pages/NotFound";
 import AreaDetail from "./pages/AreaDetail";
 import Leaderboards from "./pages/Leaderboards";
 import Challenges from "./pages/Challenges";
+import Friends from "./pages/Friends";
+import FriendProgress from "./pages/FriendProgress";
+import SocialFeed from "./pages/SocialFeed";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +32,7 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<AuthGuard><Dashboard /></AuthGuard>} />
+          <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
           <Route path="/log-activity" element={<AuthGuard><LogActivity /></AuthGuard>} />
           <Route path="/quests" element={<AuthGuard><Quests /></AuthGuard>} />
           <Route path="/spiritual-hub" element={<AuthGuard><SpiritualHub /></AuthGuard>} />
@@ -39,6 +43,9 @@ const App = () => (
           <Route path="/area/:area" element={<AuthGuard><AreaDetail /></AuthGuard>} />
           <Route path="/insights" element={<AuthGuard><Insights /></AuthGuard>} />
           <Route path="/profile" element={<AuthGuard><Profile /></AuthGuard>} />
+          <Route path="/friends" element={<AuthGuard><Friends /></AuthGuard>} />
+          <Route path="/friend/:friendId" element={<AuthGuard><FriendProgress /></AuthGuard>} />
+          <Route path="/social" element={<AuthGuard><SocialFeed /></AuthGuard>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BarChart3, Download, FileJson } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { TrendCharts } from "@/components/TrendCharts";
 
 export default function Insights() {
   const navigate = useNavigate();
@@ -203,6 +204,9 @@ export default function Insights() {
               </CardHeader>
             </Card>
           </div>
+
+          {/* Trend Charts */}
+          <TrendCharts />
 
           {/* Area Breakdown */}
           <Card>

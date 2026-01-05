@@ -288,6 +288,48 @@ export default function Profile() {
                   className="w-5 h-5"
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Email Notifications</div>
+                  <div className="text-sm text-muted-foreground">
+                    Receive email updates and summaries
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifications?.email_enabled ?? true}
+                  onChange={(e) => updateNotifications("email_enabled", e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Streak Warning Emails</div>
+                  <div className="text-sm text-muted-foreground">
+                    Get notified when streaks are at risk
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifications?.streak_warning_email ?? true}
+                  onChange={(e) => updateNotifications("streak_warning_email", e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Weekly Summary</div>
+                  <div className="text-sm text-muted-foreground">
+                    Receive weekly progress reports
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifications?.weekly_summary_email ?? true}
+                  onChange={(e) => updateNotifications("weekly_summary_email", e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
             </CardContent>
           </Card>
 

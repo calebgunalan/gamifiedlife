@@ -101,16 +101,20 @@
 - ✅ JSON and CSV data export
 - ✅ User onboarding tracking
 
+#### January 2026 - Additional Features
+- ✅ **Friend System** with friend requests, accept/reject flow
+- ✅ **Friend Progress View** - see your friends' levels and achievements
+- ✅ **Social Feed** with posts, likes, and privacy controls (public/friends/private)
+- ✅ **Trend Charts** - Daily XP, Area distribution, Weekly comparison, Streak progress
+- ✅ **Email Notifications** via Resend for:
+  - Streak warning emails
+  - Weekly summary emails with progress report
+- ✅ Enhanced notification preferences (email toggles)
+- ✅ Profile email notification settings
+
 ---
 
 ### ⚠️ PARTIALLY IMPLEMENTED
-
-#### Notifications
-- ✅ Notification preferences system
-- ✅ Edge function for notification processing
-- ⚠️ **Missing:** Email service integration (Resend/SendGrid)
-- ⚠️ **Missing:** Push notification setup
-- ⚠️ **Missing:** In-app notification UI
 
 #### Integrations
 - ⚠️ **Missing:** Google Fit/Calendar OAuth
@@ -130,13 +134,13 @@
 
 #### Advanced Features
 - ❌ Guilds (larger social groups)
-- ❌ Social feed for milestone sharing
 - ❌ Seasonal events activation
 - ❌ Variable rewards system
 - ❌ Personal rewards marketplace
 - ❌ Advanced ML insights
 - ❌ A/B testing framework
 - ❌ PWA offline capabilities
+- ❌ Push notifications
 
 ---
 

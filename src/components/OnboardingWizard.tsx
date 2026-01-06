@@ -1,13 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Target, Clock, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { Sparkles, Target, Clock, ArrowRight, ArrowLeft, Check, Shield } from "lucide-react";
 
 interface OnboardingWizardProps {
   onComplete: () => void;
+}
+
+interface CharacterClass {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  primary_area: string | null;
+  secondary_area: string | null;
 }
 
 const LIFE_AREAS = [
@@ -31,7 +40,20 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const [step, setStep] = useState(1);
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [commitment, setCommitment] = useState("medium");
+  const [selectedClass, setSelectedClass] = useState<string | null>(null);
+  const [classes, setClasses] = useState<CharacterClass[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadClasses();
+  }, []);
+
+  const loadClasses = async () => {
+    const { data } = await supabase
+      .from("character_classes")
+      .select("*");
+    if (data) setClasses(data);
+  };
 
   const toggleArea = (areaId: string) => {
     setSelectedAreas(prev => 
@@ -47,7 +69,15 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from("user_onboarding" as any).insert({
+      // Update profile with selected class
+      if (selectedClass) {
+        await supabase
+          .from("profiles")
+          .update({ class_id: selectedClass })
+          .eq("id", user.id);
+      }
+
+      await supabase.from("user_onboarding").insert({
         user_id: user.id,
         is_completed: true,
         focus_areas: selectedAreas,
@@ -56,12 +86,19 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       });
 
       // Create welcome notification
-      await supabase.from("in_app_notifications" as any).insert({
+      await supabase.from("in_app_notifications").insert({
         user_id: user.id,
         title: "Welcome, Adventurer! 🎉",
         message: "Your journey begins now. Start by logging your first activity!",
         type: "success",
         action_url: "/log-activity"
+      });
+
+      // Log first daily login
+      await supabase.from("daily_logins").insert({
+        user_id: user.id,
+        login_date: new Date().toISOString().split('T')[0],
+        consecutive_days: 1
       });
 
       toast({
@@ -79,10 +116,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
   return (
     <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl border-primary/30 shadow-2xl">
+      <Card className="w-full max-w-2xl border-primary/30 shadow-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            {[1, 2, 3].map((s) => (
+            {[1, 2, 3, 4].map((s) => (
               <div
                 key={s}
                 className={`w-3 h-3 rounded-full mx-1 transition-colors ${
@@ -93,13 +130,15 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           </div>
           <CardTitle className="text-2xl flex items-center justify-center gap-2">
             {step === 1 && <><Sparkles className="w-6 h-6 text-primary" /> Welcome, Adventurer!</>}
-            {step === 2 && <><Target className="w-6 h-6 text-primary" /> Choose Your Focus</>}
-            {step === 3 && <><Clock className="w-6 h-6 text-primary" /> Set Your Pace</>}
+            {step === 2 && <><Shield className="w-6 h-6 text-primary" /> Choose Your Class</>}
+            {step === 3 && <><Target className="w-6 h-6 text-primary" /> Choose Your Focus</>}
+            {step === 4 && <><Clock className="w-6 h-6 text-primary" /> Set Your Pace</>}
           </CardTitle>
           <CardDescription>
             {step === 1 && "Let's customize your journey to level up your life"}
-            {step === 2 && "Select 3 or more areas you want to focus on"}
-            {step === 3 && "How much time can you dedicate daily?"}
+            {step === 2 && "Select your character class for XP bonuses"}
+            {step === 3 && "Select 3 or more areas you want to focus on"}
+            {step === 4 && "How much time can you dedicate daily?"}
           </CardDescription>
         </CardHeader>
 
@@ -132,8 +171,44 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             </div>
           )}
 
-          {/* Step 2: Focus Areas */}
+          {/* Step 2: Class Selection */}
           {step === 2 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {classes.map((charClass) => (
+                <div
+                  key={charClass.id}
+                  onClick={() => setSelectedClass(charClass.id)}
+                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                    selectedClass === charClass.id
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/30"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="text-4xl">{charClass.icon}</div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-lg">{charClass.name}</div>
+                      <p className="text-sm text-muted-foreground mt-1">{charClass.description}</p>
+                      {charClass.primary_area && (
+                        <div className="mt-2 text-xs text-primary">
+                          +5% XP in {charClass.primary_area}
+                          {charClass.secondary_area && ` & ${charClass.secondary_area}`}
+                        </div>
+                      )}
+                      {!charClass.primary_area && (
+                        <div className="mt-2 text-xs text-primary">
+                          Balanced bonuses across all areas
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Step 3: Focus Areas */}
+          {step === 3 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {LIFE_AREAS.map((area) => (
                 <div
@@ -158,8 +233,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             </div>
           )}
 
-          {/* Step 3: Commitment Level */}
-          {step === 3 && (
+          {/* Step 4: Commitment Level */}
+          {step === 4 && (
             <div className="space-y-3">
               {COMMITMENT_LEVELS.map((level) => (
                 <div
@@ -197,16 +272,19 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               <div />
             )}
 
-            {step < 3 ? (
+            {step < 4 ? (
               <Button 
                 onClick={() => setStep(step + 1)}
-                disabled={step === 2 && selectedAreas.length < 3}
+                disabled={step === 2 && !selectedClass}
               >
                 Continue
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
-              <Button onClick={handleComplete} disabled={loading}>
+              <Button 
+                onClick={handleComplete} 
+                disabled={loading || selectedAreas.length < 3}
+              >
                 <Check className="w-4 h-4 mr-2" />
                 {loading ? "Starting..." : "Begin Adventure!"}
               </Button>

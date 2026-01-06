@@ -259,6 +259,74 @@ export type Database = {
           },
         ]
       }
+      character_classes: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          primary_area: Database["public"]["Enums"]["life_area"] | null
+          secondary_area: Database["public"]["Enums"]["life_area"] | null
+          xp_bonus_percent: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          primary_area?: Database["public"]["Enums"]["life_area"] | null
+          secondary_area?: Database["public"]["Enums"]["life_area"] | null
+          xp_bonus_percent?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          primary_area?: Database["public"]["Enums"]["life_area"] | null
+          secondary_area?: Database["public"]["Enums"]["life_area"] | null
+          xp_bonus_percent?: number | null
+        }
+        Relationships: []
+      }
+      daily_logins: {
+        Row: {
+          bonus_claimed: boolean | null
+          consecutive_days: number | null
+          created_at: string | null
+          id: string
+          login_date: string
+          user_id: string
+        }
+        Insert: {
+          bonus_claimed?: boolean | null
+          consecutive_days?: number | null
+          created_at?: string | null
+          id?: string
+          login_date?: string
+          user_id: string
+        }
+        Update: {
+          bonus_claimed?: boolean | null
+          consecutive_days?: number | null
+          created_at?: string | null
+          id?: string
+          login_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_logins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friends: {
         Row: {
           created_at: string
@@ -629,8 +697,10 @@ export type Database = {
           avatar_url: string | null
           character_level: number | null
           character_name: string
+          class_id: string | null
           created_at: string | null
           email: string | null
+          grace_period_hours: number | null
           id: string
           monthly_reset_date: string | null
           monthly_xp: number | null
@@ -641,8 +711,10 @@ export type Database = {
           avatar_url?: string | null
           character_level?: number | null
           character_name: string
+          class_id?: string | null
           created_at?: string | null
           email?: string | null
+          grace_period_hours?: number | null
           id: string
           monthly_reset_date?: string | null
           monthly_xp?: number | null
@@ -653,15 +725,25 @@ export type Database = {
           avatar_url?: string | null
           character_level?: number | null
           character_name?: string
+          class_id?: string | null
           created_at?: string | null
           email?: string | null
+          grace_period_hours?: number | null
           id?: string
           monthly_reset_date?: string | null
           monthly_xp?: number | null
           total_xp?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "character_classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quest_templates: {
         Row: {
@@ -793,6 +875,44 @@ export type Database = {
           },
           {
             foreignKeyName: "social_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spiritual_logs: {
+        Row: {
+          created_at: string | null
+          duration_minutes: number | null
+          id: string
+          notes: string | null
+          practice_type: string
+          user_id: string
+          xp_earned: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          practice_type: string
+          user_id: string
+          xp_earned?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          practice_type?: string
+          user_id?: string
+          xp_earned?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spiritual_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

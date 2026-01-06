@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ProgressBar } from "./ProgressBar";
 import { Shield, LogOut } from "lucide-react";
@@ -14,6 +15,11 @@ interface CharacterCardProps {
   totalXp: number;
 }
 
+interface CharacterClass {
+  name: string;
+  icon: string;
+}
+
 export const CharacterCard = ({ 
   name, 
   level, 
@@ -22,6 +28,32 @@ export const CharacterCard = ({
   totalXp 
 }: CharacterCardProps) => {
   const navigate = useNavigate();
+  const [characterClass, setCharacterClass] = useState<CharacterClass | null>(null);
+
+  useEffect(() => {
+    loadCharacterClass();
+  }, []);
+
+  const loadCharacterClass = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("class_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.class_id) {
+      const { data: classData } = await supabase
+        .from("character_classes")
+        .select("name, icon")
+        .eq("id", profile.class_id)
+        .single();
+
+      if (classData) setCharacterClass(classData);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -35,11 +67,17 @@ export const CharacterCard = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center border-2 border-primary animate-glow-pulse">
-              <Shield className="w-6 h-6 text-primary" />
+              {characterClass ? (
+                <span className="text-2xl">{characterClass.icon}</span>
+              ) : (
+                <Shield className="w-6 h-6 text-primary" />
+              )}
             </div>
             <div>
               <h2 className="text-2xl font-bold text-foreground">{name}</h2>
-              <p className="text-sm text-muted-foreground">Level {level} Adventurer</p>
+              <p className="text-sm text-muted-foreground">
+                Level {level} {characterClass ? characterClass.name : 'Adventurer'}
+              </p>
             </div>
           </div>
           <Button

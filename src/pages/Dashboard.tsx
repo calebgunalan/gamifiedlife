@@ -8,7 +8,7 @@ import { Scroll, Award, Heart, Users, BarChart3, User, Target, Swords, Trophy, M
 import { Link } from "react-router-dom";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { NotificationCenter } from "@/components/NotificationCenter";
-
+import { useDailyLogin } from "@/hooks/useDailyLogin";
 interface Profile {
   character_name: string;
   character_level: number;
@@ -28,6 +28,7 @@ const Dashboard = () => {
   const [areaProgress, setAreaProgress] = useState<AreaProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const dailyLogin = useDailyLogin();
 
   useEffect(() => {
     fetchData();

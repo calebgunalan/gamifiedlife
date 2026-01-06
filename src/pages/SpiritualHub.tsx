@@ -5,7 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Play, Pause, Heart, TreePine, HandHeart } from "lucide-react";
+import { ArrowLeft, Play, Pause, Heart, TreePine, HandHeart, History } from "lucide-react";
+import { format } from "date-fns";
+
+interface SpiritualLog {
+  id: string;
+  practice_type: string;
+  duration_minutes: number | null;
+  notes: string | null;
+  xp_earned: number;
+  created_at: string;
+}
 
 export default function SpiritualHub() {
   const navigate = useNavigate();
@@ -17,9 +27,11 @@ export default function SpiritualHub() {
   const [natureTime, setNatureTime] = useState(0);
   const [isInNature, setIsInNature] = useState(false);
   const [serviceNotes, setServiceNotes] = useState("");
+  const [recentLogs, setRecentLogs] = useState<SpiritualLog[]>([]);
 
   useEffect(() => {
     loadStreaks();
+    loadRecentLogs();
     let meditationInterval: any;
     let natureInterval: any;
     
@@ -55,6 +67,90 @@ export default function SpiritualHub() {
     setStreaks(data);
   };
 
+  const loadRecentLogs = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("spiritual_logs")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (data) setRecentLogs(data);
+  };
+
+  const updateAreaProgress = async (userId: string, xp: number) => {
+    const { data: progress } = await supabase
+      .from("area_progress")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("area", "spiritual")
+      .single();
+
+    if (progress) {
+      await supabase
+        .from("area_progress")
+        .update({
+          total_xp: (progress.total_xp || 0) + xp,
+          weekly_xp: (progress.weekly_xp || 0) + xp
+        })
+        .eq("id", progress.id);
+    }
+
+    // Update profile total XP
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("total_xp")
+      .eq("id", userId)
+      .single();
+
+    if (profile) {
+      await supabase
+        .from("profiles")
+        .update({ total_xp: (profile.total_xp || 0) + xp })
+        .eq("id", userId);
+    }
+  };
+
+  const updateStreak = async (userId: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const { data: streak } = await supabase
+      .from("streaks")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("area", "spiritual")
+      .single();
+
+    if (streak) {
+      const lastActivity = streak.last_activity_date;
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      let newCount = streak.current_count || 0;
+      
+      if (lastActivity !== today) {
+        if (lastActivity === yesterdayStr) {
+          newCount += 1;
+        } else {
+          newCount = 1;
+        }
+
+        await supabase
+          .from("streaks")
+          .update({
+            current_count: newCount,
+            longest_count: Math.max(newCount, streak.longest_count || 0),
+            last_activity_date: today
+          })
+          .eq("id", streak.id);
+      }
+    }
+  };
+
   const startMeditation = () => {
     setIsMeditating(true);
     setMeditationTime(0);
@@ -77,31 +173,18 @@ export default function SpiritualHub() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from("spiritual_logs" as any).insert({
+      const xp = minutes * 2;
+
+      await supabase.from("spiritual_logs").insert({
         user_id: user.id,
         practice_type: "meditation",
         duration_minutes: minutes,
-        notes: `${minutes} minute meditation session`
+        notes: `${minutes} minute meditation session`,
+        xp_earned: xp
       });
 
-      // Award XP
-      const xp = minutes * 2;
-      const { data: progress } = await supabase
-        .from("area_progress")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("area", "spiritual")
-        .single();
-
-      if (progress) {
-        await supabase
-          .from("area_progress")
-          .update({
-            total_xp: progress.total_xp + xp,
-            weekly_xp: progress.weekly_xp + xp
-          })
-          .eq("id", progress.id);
-      }
+      await updateAreaProgress(user.id, xp);
+      await updateStreak(user.id);
 
       toast({
         title: "Meditation Complete 🧘",
@@ -110,6 +193,7 @@ export default function SpiritualHub() {
 
       setMeditationTime(0);
       loadStreaks();
+      loadRecentLogs();
     } catch (error) {
       console.error("Error logging meditation:", error);
       toast({
@@ -134,29 +218,17 @@ export default function SpiritualHub() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from("spiritual_logs" as any).insert({
+      const xp = 5;
+
+      await supabase.from("spiritual_logs").insert({
         user_id: user.id,
         practice_type: "gratitude",
-        notes: gratitudeEntry
+        notes: gratitudeEntry,
+        xp_earned: xp
       });
 
-      // Award XP
-      const { data: progress } = await supabase
-        .from("area_progress")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("area", "spiritual")
-        .single();
-
-      if (progress) {
-        await supabase
-          .from("area_progress")
-          .update({
-            total_xp: progress.total_xp + 5,
-            weekly_xp: progress.weekly_xp + 5
-          })
-          .eq("id", progress.id);
-      }
+      await updateAreaProgress(user.id, xp);
+      await updateStreak(user.id);
 
       toast({
         title: "Gratitude Logged 🙏",
@@ -165,6 +237,7 @@ export default function SpiritualHub() {
 
       setGratitudeEntry("");
       loadStreaks();
+      loadRecentLogs();
     } catch (error) {
       console.error("Error logging gratitude:", error);
       toast({
@@ -197,39 +270,27 @@ export default function SpiritualHub() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from("activity_logs").insert({
+      const xp = minutes * 3;
+
+      await supabase.from("spiritual_logs").insert({
         user_id: user.id,
-        activity_id: "00000000-0000-0000-0000-000000000000",
-        area: "spiritual",
-        xp_earned: minutes * 3,
-        notes: `${minutes} minutes in nature`
-      } as any);
+        practice_type: "nature",
+        duration_minutes: minutes,
+        notes: `${minutes} minutes in nature`,
+        xp_earned: xp
+      });
 
-      const { data: progress } = await supabase
-        .from("area_progress")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("area", "spiritual")
-        .single();
+      await updateAreaProgress(user.id, xp);
+      await updateStreak(user.id);
 
-      if (progress) {
-        const xp = minutes * 3;
-        await supabase
-          .from("area_progress")
-          .update({
-            total_xp: progress.total_xp + xp,
-            weekly_xp: progress.weekly_xp + xp
-          })
-          .eq("id", progress.id);
-
-        toast({
-          title: "Nature Time Logged 🌿",
-          description: `You earned ${xp} XP for ${minutes} minutes in nature!`
-        });
-      }
+      toast({
+        title: "Nature Time Logged 🌿",
+        description: `You earned ${xp} XP for ${minutes} minutes in nature!`
+      });
 
       setNatureTime(0);
       loadStreaks();
+      loadRecentLogs();
     } catch (error) {
       console.error("Error logging nature time:", error);
       toast({
@@ -254,30 +315,17 @@ export default function SpiritualHub() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from("activity_logs").insert({
+      const xp = 10;
+
+      await supabase.from("spiritual_logs").insert({
         user_id: user.id,
-        activity_id: "00000000-0000-0000-0000-000000000000",
-        area: "spiritual",
-        xp_earned: 10,
-        notes: `Service: ${serviceNotes}`
-      } as any);
+        practice_type: "service",
+        notes: serviceNotes,
+        xp_earned: xp
+      });
 
-      const { data: progress } = await supabase
-        .from("area_progress")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("area", "spiritual")
-        .single();
-
-      if (progress) {
-        await supabase
-          .from("area_progress")
-          .update({
-            total_xp: progress.total_xp + 10,
-            weekly_xp: progress.weekly_xp + 10
-          })
-          .eq("id", progress.id);
-      }
+      await updateAreaProgress(user.id, xp);
+      await updateStreak(user.id);
 
       toast({
         title: "Service Logged 🤝",
@@ -286,6 +334,7 @@ export default function SpiritualHub() {
 
       setServiceNotes("");
       loadStreaks();
+      loadRecentLogs();
     } catch (error) {
       console.error("Error logging service:", error);
       toast({
@@ -302,8 +351,20 @@ export default function SpiritualHub() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getPracticeIcon = (type: string) => {
+    switch (type) {
+      case 'meditation': return '🧘';
+      case 'gratitude': return '🙏';
+      case 'nature': return '🌿';
+      case 'service': return '🤝';
+      case 'prayer': return '✨';
+      case 'mindfulness': return '🎯';
+      default: return '💫';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <Button 
         variant="ghost" 
         onClick={() => navigate("/dashboard")}
@@ -317,9 +378,15 @@ export default function SpiritualHub() {
         <div className="flex items-center gap-3 mb-8">
           <Heart className="w-8 h-8 text-primary" />
           <h1 className="text-4xl font-bold">Spiritual Hub</h1>
+          {streaks && (
+            <div className="ml-auto flex items-center gap-2 text-sm bg-primary/10 px-3 py-1 rounded-full">
+              <span className="text-xl">🔥</span>
+              <span className="font-medium">{streaks.current_count} day streak</span>
+            </div>
+          )}
         </div>
 
-        <div className="grid gap-6">
+        <div className="grid gap-6 md:grid-cols-2">
           {/* Meditation Timer */}
           <Card>
             <CardHeader>
@@ -352,12 +419,8 @@ export default function SpiritualHub() {
                     </>
                   )}
                 </Button>
+                <p className="text-xs text-muted-foreground mt-2">+2 XP per minute</p>
               </div>
-              {streaks && (
-                <div className="text-center text-sm text-muted-foreground">
-                  Current streak: {streaks.current_count} days 🔥
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -376,7 +439,7 @@ export default function SpiritualHub() {
                 placeholder="I'm grateful for..."
                 value={gratitudeEntry}
                 onChange={(e) => setGratitudeEntry(e.target.value)}
-                className="min-h-32"
+                className="min-h-24"
               />
               <Button onClick={logGratitude} className="w-full">
                 Log Gratitude (+5 XP)
@@ -397,7 +460,7 @@ export default function SpiritualHub() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center">
-                <div className="text-6xl font-bold text-emerald mb-6">
+                <div className="text-6xl font-bold text-emerald-500 mb-6">
                   {formatTime(natureTime)}
                 </div>
                 <Button
@@ -417,6 +480,7 @@ export default function SpiritualHub() {
                     </>
                   )}
                 </Button>
+                <p className="text-xs text-muted-foreground mt-2">+3 XP per minute</p>
               </div>
             </CardContent>
           </Card>
@@ -437,7 +501,7 @@ export default function SpiritualHub() {
                 placeholder="Describe your act of service or compassion..."
                 value={serviceNotes}
                 onChange={(e) => setServiceNotes(e.target.value)}
-                className="min-h-32"
+                className="min-h-24"
               />
               <Button onClick={logService} className="w-full">
                 Log Service (+10 XP)
@@ -445,6 +509,45 @@ export default function SpiritualHub() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Recent Spiritual Logs */}
+        {recentLogs.length > 0 && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="w-5 h-5" />
+                Recent Spiritual Practices
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recentLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{getPracticeIcon(log.practice_type)}</span>
+                      <div>
+                        <p className="font-medium capitalize">{log.practice_type}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {log.duration_minutes ? `${log.duration_minutes} min` : log.notes?.substring(0, 40)}
+                          {log.notes && log.notes.length > 40 && '...'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-primary">+{log.xp_earned} XP</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(log.created_at), 'MMM d, h:mm a')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

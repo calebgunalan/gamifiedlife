@@ -20,6 +20,7 @@ import Challenges from "./pages/Challenges";
 import Friends from "./pages/Friends";
 import FriendProgress from "./pages/FriendProgress";
 import SocialFeed from "./pages/SocialFeed";
+import Guilds from "./pages/Guilds";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/friends" element={<AuthGuard><Friends /></AuthGuard>} />
           <Route path="/friend/:friendId" element={<AuthGuard><FriendProgress /></AuthGuard>} />
           <Route path="/social" element={<AuthGuard><SocialFeed /></AuthGuard>} />
+          <Route path="/guilds" element={<AuthGuard><Guilds /></AuthGuard>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

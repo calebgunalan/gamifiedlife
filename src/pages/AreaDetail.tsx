@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, TrendingUp, Flame } from "lucide-react";
 import { ProgressBar } from "@/components/ProgressBar";
+import { StreakCalendar } from "@/components/StreakCalendar";
 
 const areaInfo: Record<string, { title: string; icon: string; color: string }> = {
   physical: { title: "Physical Health", icon: "💪", color: "health" },
@@ -260,6 +261,9 @@ export default function AreaDetail() {
             </CardHeader>
           </Card>
         </div>
+
+        {/* Streak Calendar */}
+        <StreakCalendar area={area} />
 
         {/* Predefined Activities */}
         <Card>

@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CharacterCard } from "@/components/CharacterCard";
 import { SkillTree } from "@/components/SkillTree";
+import { SmartQuests } from "@/components/SmartQuests";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scroll, Award, Heart, Users, BarChart3, User, Target, Swords, Trophy, MessageSquare, UserPlus } from "lucide-react";
+import { Scroll, Award, Heart, Users, BarChart3, User, Target, Swords, Trophy, MessageSquare, UserPlus, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -155,6 +156,12 @@ const Dashboard = () => {
                 Feed
               </Button>
             </Link>
+            <Link to="/guilds">
+              <Button variant="secondary" size="sm" className="gap-2">
+                <Shield className="w-4 h-4" />
+                Guilds
+              </Button>
+            </Link>
             <Link to="/profile">
               <Button variant="secondary" size="sm" className="gap-2">
                 <User className="w-4 h-4" />
@@ -164,7 +171,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Character Card */}
         <CharacterCard
           name={profile.character_name}
           level={profile.character_level}
@@ -172,6 +178,9 @@ const Dashboard = () => {
           nextLevelXp={nextLevelXp}
           totalXp={profile.total_xp}
         />
+
+        {/* Smart Quest Recommendations */}
+        <SmartQuests />
 
         {/* Weekly Balance Card */}
         <Card className="border-primary/30 bg-gradient-to-br from-card to-primary/5">

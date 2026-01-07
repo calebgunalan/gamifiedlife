@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowLeft, Plus } from "lucide-react";
+import { VariableReward, calculateVariableReward } from "@/components/VariableReward";
 
 const areas = [
   { value: "physical", label: "Physical Health" },
@@ -27,6 +28,11 @@ const LogActivity = () => {
   const [xpValue, setXpValue] = useState("10");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [reward, setReward] = useState<{ show: boolean; type: "bonus_xp" | "streak_freeze" | "rare_badge" | null; bonus: number }>({
+    show: false,
+    type: null,
+    bonus: 0
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +42,11 @@ const LogActivity = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const xp = parseInt(xpValue);
+      const baseXp = parseInt(xpValue);
+      
+      // Calculate variable reward
+      const variableReward = calculateVariableReward(baseXp);
+      const xp = baseXp + variableReward.bonusXP;
 
       // Create or get activity
       const { data: existingActivity } = await supabase
@@ -124,8 +134,35 @@ const LogActivity = () => {
           .eq("id", user.id);
       }
 
+      // Handle streak freeze reward
+      if (variableReward.type === "streak_freeze") {
+        // Add streak freeze to user's inventory
+        const { data: streaks } = await supabase
+          .from("streaks")
+          .select("*")
+          .eq("user_id", user.id)
+          .limit(1);
+        
+        if (streaks && streaks.length > 0) {
+          await supabase
+            .from("streaks")
+            .update({ freeze_count: (streaks[0].freeze_count || 0) + 1 })
+            .eq("id", streaks[0].id);
+        }
+      }
+
       toast.success(`+${xp} XP earned! 🎉`);
-      navigate("/");
+      
+      // Show variable reward animation if earned
+      if (variableReward.type) {
+        setReward({ 
+          show: true, 
+          type: variableReward.type, 
+          bonus: variableReward.bonusXP 
+        });
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to log activity");
     } finally {
@@ -133,7 +170,19 @@ const LogActivity = () => {
     }
   };
 
+  const handleRewardComplete = () => {
+    setReward({ show: false, type: null, bonus: 0 });
+    navigate("/");
+  };
+
   return (
+    <>
+      <VariableReward
+        show={reward.show}
+        rewardType={reward.type}
+        bonusAmount={reward.bonus}
+        onComplete={handleRewardComplete}
+      />
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <Button
@@ -224,6 +273,7 @@ const LogActivity = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, BarChart3, Download, FileJson } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TrendCharts } from "@/components/TrendCharts";
+import { InsightsEngine } from "@/components/InsightsEngine";
+import { StreakCalendar } from "@/components/StreakCalendar";
 
 export default function Insights() {
   const navigate = useNavigate();
@@ -207,6 +209,12 @@ export default function Insights() {
 
           {/* Trend Charts */}
           <TrendCharts />
+
+          {/* AI Insights */}
+          <InsightsEngine />
+
+          {/* Streak Calendar */}
+          <StreakCalendar />
 
           {/* Area Breakdown */}
           <Card>

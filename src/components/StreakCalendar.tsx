@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Flame, Snowflake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface StreakCalendarProps {
-  area: string;
+  area?: string;
   userId?: string;
 }
 
@@ -34,18 +34,23 @@ export function StreakCalendar({ area, userId }: StreakCalendarProps) {
       const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
-      // Load activity logs for the month
-      const { data: logs } = await supabase
+      // Load activity logs for the month (filter by area if provided)
+      let logsQuery = supabase
         .from("activity_logs")
         .select("completed_at, xp_earned")
         .eq("user_id", targetUserId)
-        .eq("area", area as any)
         .gte("completed_at", startOfMonth.toISOString())
         .lte("completed_at", endOfMonth.toISOString());
+      
+      if (area) {
+        logsQuery = logsQuery.eq("area", area as any);
+      }
+      
+      const { data: logs } = await logsQuery;
 
-      // Also check spiritual logs if this is the spiritual area
+      // Also check spiritual logs if this is the spiritual area or no area specified
       let spiritualLogs: any[] = [];
-      if (area === "spiritual") {
+      if (!area || area === "spiritual") {
         const { data: sLogs } = await supabase
           .from("spiritual_logs")
           .select("created_at, xp_earned")

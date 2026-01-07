@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CharacterCard } from "@/components/CharacterCard";
 import { SkillTree } from "@/components/SkillTree";
 import { SmartQuests } from "@/components/SmartQuests";
+import { InsightsEngine } from "@/components/InsightsEngine";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Scroll, Award, Heart, Users, BarChart3, User, Target, Swords, Trophy, MessageSquare, UserPlus, Shield } from "lucide-react";
@@ -218,6 +219,9 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Personal Insights */}
+        <InsightsEngine />
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">

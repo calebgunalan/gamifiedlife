@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Users, Plus, UserPlus } from "lucide-react";
+import { ArrowLeft, Users, Plus, UserPlus, MessageCircle } from "lucide-react";
+import { PartyChat } from "@/components/PartyChat";
 
 export default function Parties() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function Parties() {
   const [invitations, setInvitations] = useState<any[]>([]);
   const [showInviteForm, setShowInviteForm] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [selectedPartyForChat, setSelectedPartyForChat] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     loadParties();
@@ -317,63 +319,74 @@ export default function Parties() {
           </Card>
         )}
 
-        <div className="space-y-8">
-          {myParties.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-bold mb-4">My Parties</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {myParties.map((party: any) => (
-                  <Card key={party.id} className="border-primary/50">
-                    <CardHeader>
-                      <CardTitle>{party.name}</CardTitle>
-                      <CardDescription>{party.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Member
-                        </span>
-                      </div>
-                      {showInviteForm === party.id ? (
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Enter email to invite..."
-                            value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
-                          />
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              onClick={() => sendInvitation(party.id)}
-                            >
-                              Send
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => setShowInviteForm(null)}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            {myParties.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold mb-4">My Parties</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {myParties.map((party: any) => (
+                    <Card 
+                      key={party.id} 
+                      className={`border-primary/50 cursor-pointer transition-all ${selectedPartyForChat?.id === party.id ? 'ring-2 ring-primary' : ''}`}
+                      onClick={() => setSelectedPartyForChat({ id: party.id, name: party.name })}
+                    >
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          {party.name}
+                          <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                        </CardTitle>
+                        <CardDescription>{party.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            Member
+                          </span>
                         </div>
-                      ) : (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setShowInviteForm(party.id)}
-                          className="w-full"
-                        >
-                          <UserPlus className="w-4 h-4 mr-2" />
-                          Invite Member
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+                        {showInviteForm === party.id ? (
+                          <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                            <Input
+                              placeholder="Enter email to invite..."
+                              value={inviteEmail}
+                              onChange={(e) => setInviteEmail(e.target.value)}
+                            />
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                onClick={() => sendInvitation(party.id)}
+                              >
+                                Send
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => setShowInviteForm(null)}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowInviteForm(party.id);
+                            }}
+                            className="w-full"
+                          >
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Invite Member
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           <div>
             <h2 className="text-2xl font-bold mb-4">All Parties</h2>
@@ -407,6 +420,24 @@ export default function Parties() {
                 );
               })}
             </div>
+          </div>
+          </div>
+
+          {/* Chat Panel */}
+          <div className="lg:col-span-1">
+            {selectedPartyForChat ? (
+              <PartyChat 
+                partyId={selectedPartyForChat.id} 
+                partyName={selectedPartyForChat.name} 
+              />
+            ) : (
+              <Card className="h-[400px] flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Select a party to start chatting</p>
+                </div>
+              </Card>
+            )}
           </div>
         </div>
       </div>

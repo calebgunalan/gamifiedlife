@@ -100,7 +100,7 @@ const Dashboard = () => {
   const nextLevelXp = calculateNextLevelXp(profile.character_level);
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8 pb-20 md:pb-8">
       {/* Onboarding Wizard */}
       {showOnboarding && (
         <OnboardingWizard onComplete={() => setShowOnboarding(false)} />

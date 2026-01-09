@@ -149,7 +149,7 @@ export default function Quests() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8 pb-20 md:pb-8">
       <Button 
         variant="ghost" 
         onClick={() => navigate("/dashboard")}

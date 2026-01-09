@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { ArrowLeft, Plus } from "lucide-react";
 import { VariableReward, calculateVariableReward } from "@/components/VariableReward";
+import { LevelUpCelebration } from "@/components/LevelUpCelebration";
 
 const areas = [
   { value: "physical", label: "Physical Health" },
@@ -32,6 +33,11 @@ const LogActivity = () => {
     show: false,
     type: null,
     bonus: 0
+  });
+  const [levelUp, setLevelUp] = useState<{ show: boolean; level: number; area: string | undefined }>({
+    show: false,
+    level: 1,
+    area: undefined
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,6 +106,7 @@ const LogActivity = () => {
         const newWeeklyXp = areaData.weekly_xp + xp;
         const currentLevelXp = 100 * areaData.level;
         const newLevel = Math.floor(newTotalXp / currentLevelXp) + 1;
+        const leveledUp = newLevel > areaData.level;
 
         await supabase
           .from("area_progress")
@@ -109,6 +116,11 @@ const LogActivity = () => {
             level: newLevel,
           })
           .eq("id", areaData.id);
+
+        // Show level up celebration for area
+        if (leveledUp) {
+          setLevelUp({ show: true, level: newLevel, area });
+        }
       }
 
       // Update profile
@@ -123,6 +135,7 @@ const LogActivity = () => {
         const newMonthlyXp = profileData.monthly_xp + xp;
         const currentLevelXp = 100 * profileData.character_level;
         const newLevel = Math.floor(newMonthlyXp / currentLevelXp) + 1;
+        const characterLeveledUp = newLevel > profileData.character_level;
 
         await supabase
           .from("profiles")
@@ -132,6 +145,11 @@ const LogActivity = () => {
             character_level: newLevel,
           })
           .eq("id", user.id);
+
+        // Show character level up celebration
+        if (characterLeveledUp && !levelUp.show) {
+          setLevelUp({ show: true, level: newLevel, area: undefined });
+        }
       }
 
       // Handle streak freeze reward
@@ -172,6 +190,13 @@ const LogActivity = () => {
 
   const handleRewardComplete = () => {
     setReward({ show: false, type: null, bonus: 0 });
+    if (!levelUp.show) {
+      navigate("/");
+    }
+  };
+
+  const handleLevelUpComplete = () => {
+    setLevelUp({ show: false, level: 1, area: undefined });
     navigate("/");
   };
 
@@ -182,6 +207,12 @@ const LogActivity = () => {
         rewardType={reward.type}
         bonusAmount={reward.bonus}
         onComplete={handleRewardComplete}
+      />
+      <LevelUpCelebration
+        show={levelUp.show}
+        level={levelUp.level}
+        area={levelUp.area}
+        onComplete={handleLevelUpComplete}
       />
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">

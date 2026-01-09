@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, MessageSquare, Heart, Send, Globe, Users, Lock } from "lucide-react";
+import { ArrowLeft, MessageSquare, Heart, Send, Globe, Users, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import PostComments from "@/components/PostComments";
 
 interface Post {
   id: string;
@@ -34,6 +35,7 @@ export default function SocialFeed() {
   const [postType, setPostType] = useState<string>("custom");
   const [submitting, setSubmitting] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadPosts();
@@ -325,17 +327,40 @@ export default function SocialFeed() {
                   <p className="mb-4 whitespace-pre-wrap">{post.content}</p>
 
                   <div className="flex items-center justify-between pt-3 border-t">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleLike(post.id, post.user_liked)}
-                      className={post.user_liked ? "text-ruby" : ""}
-                    >
-                      <Heart 
-                        className={`w-4 h-4 mr-1 ${post.user_liked ? "fill-current" : ""}`} 
-                      />
-                      {post.likes_count}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleLike(post.id, post.user_liked)}
+                        className={post.user_liked ? "text-ruby" : ""}
+                      >
+                        <Heart 
+                          className={`w-4 h-4 mr-1 ${post.user_liked ? "fill-current" : ""}`} 
+                        />
+                        {post.likes_count}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newExpanded = new Set(expandedComments);
+                          if (newExpanded.has(post.id)) {
+                            newExpanded.delete(post.id);
+                          } else {
+                            newExpanded.add(post.id);
+                          }
+                          setExpandedComments(newExpanded);
+                        }}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-1" />
+                        Comments
+                        {expandedComments.has(post.id) ? (
+                          <ChevronUp className="w-3 h-3 ml-1" />
+                        ) : (
+                          <ChevronDown className="w-3 h-3 ml-1" />
+                        )}
+                      </Button>
+                    </div>
 
                     {post.user_id === currentUserId && (
                       <Button
@@ -348,6 +373,11 @@ export default function SocialFeed() {
                       </Button>
                     )}
                   </div>
+
+                  {/* Comments Section */}
+                  {expandedComments.has(post.id) && (
+                    <PostComments postId={post.id} currentUserId={currentUserId} />
+                  )}
                 </CardContent>
               </Card>
             ))

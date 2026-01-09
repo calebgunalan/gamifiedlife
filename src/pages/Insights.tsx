@@ -146,7 +146,7 @@ export default function Insights() {
   const balancedAreas = stats?.areaProgress?.filter((area: any) => area.weekly_xp >= 36).length || 0;
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8 pb-20 md:pb-8">
       <Button 
         variant="ghost" 
         onClick={() => navigate("/dashboard")}
